@@ -1,0 +1,40 @@
+seed: 42
+model_type: resnet-lstm
+device: cuda                    # cpu, cuda, [0, 1] ...
+ddp: false                      # for multi-gpu training
+
+cache_dir: /data
+img_data_path: /data/captioning/Images/
+cap_data_path: /data/captioning/captions.txt
+
+fp16: false
+fp16_opt_level: "01"            # mixed precision
+
+do_eval: true                   # validation
+
+encoder_fine_tune: true         # low 5-layer freeze
+max_length: 32                  # max-length for tokenize
+scheduler_type: cosine          # linear or cosine
+warmup_ratio: 0.1
+weight_decay: 0.01              # optimizer weight decay
+
+save_total_limit: 50
+epochs: 20
+batch_size: 64
+vocab_size: 10000
+encoder_lr: 1e-4
+decoder_lr: 4e-4
+image_size: 256
+encoded_image_size: 14
+embedding_dim: 512
+attention_dim: 512
+decoder_dim: 512
+dropout: 0.5
+gradient_accumulation_steps: 1.0
+clip_max_norm: 5.0
+regularization_lambda: 1.0
+
+save_strategy: epoch            # epoch or step
+save_step: 10                   # if save_starategy is a step, the model saved at each save_step.
+compare_best: false             # if this option is true, compare loss and save model.
+log_step: 1                     # step for terminal log
