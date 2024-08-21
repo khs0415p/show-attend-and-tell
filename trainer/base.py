@@ -333,7 +333,7 @@ class BaseTrainer:
 
         # bleu score
         self.bleu_score_list.append([epoch_bleu2_score / (i + 1), epoch_bleu4_score / (i + 1)])
-        self.meteor_score_list.apppend(epoch_meteor_score / (i+1))
+        self.meteor_score_list.append(epoch_meteor_score / (i+1))
 
         if self.config.save_strategy == 'epoch' and self.is_rank_zero:
             self.save_checkpoint(epoch_loss, epoch + 1)
