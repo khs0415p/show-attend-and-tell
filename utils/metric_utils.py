@@ -1,5 +1,6 @@
+from itertools import chain
 from nltk.translate.bleu_score import corpus_bleu, SmoothingFunction
-from nltk.translate.meteor_score import meteor_score
+from nltk.translate.meteor_score import single_meteor_score
 
 
 def get_metrics(refs, hyps, tokenizer):
@@ -19,4 +20,10 @@ def get_bleu_score(refs, hyps, n):
 
 
 def get_meteor_score(refs, hyps):
-    return meteor_score(refs, hyps)
+    refs = list(chain(*refs))
+    assert len(refs) == len(hyps)
+
+    total_score = 0
+    for ref, hyp in zip(refs, hyps):
+        total_score += single_meteor_score(ref, hyp)
+    return total_score / len(refs)
