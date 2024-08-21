@@ -7,7 +7,7 @@ import logging
 import skimage.transform
 import matplotlib.pyplot as plt
 
-from .metric_utils import get_bleu_score
+from .metric_utils import get_metrics
 from PIL import Image
 
 
@@ -69,26 +69,29 @@ def save_loss_history(base_path, phase, model_name, loss_history, step):
     plt.savefig(f"{base_path}/{phase}_loss.png", bbox_inches='tight', dpi=300)
 
 
-def save_bleu_history(base_path, bleu_history):
+def save_history(base_path, history, metric_type='bleu'):
     """
     Args:
-        bleu_history: [[bleu2, bleu4], ...]
+        metric_type (str) : metric name
     """
-    bleu2 = [bleu for bleu, _ in bleu_history]
-    bleu4 = [bleu for _, bleu in bleu_history]
-    epoch = len(bleu_history)
+    if metric_type == 'bleu':
+        bleu2 = [bleu for bleu, _ in history]
+        bleu4 = [bleu for _, bleu in history]
+        epoch = len(history)
 
-    plt.title("BLEU Score History")
+    plt.title(f"{metric_type.upper()} Score History")
     plt.xlabel("Epoch")
-    plt.ylabel("BLEU")
+    plt.ylabel(metric_type.upper())
 
-    plt.plot(range(1, epoch + 1), bleu2, marker='o', label='BLEU-2')
-    plt.plot(range(1, epoch + 1), bleu4, marker='o', label='BLEU-4')
+    if metric_type == 'bleu':
+        plt.plot(range(1, epoch + 1), bleu2, marker='o', label='BLEU-2')
+        plt.plot(range(1, epoch + 1), bleu4, marker='o', label='BLEU-4')
+    else:
+        plt.plot(range(1, epoch + 1), bleu2, marker='o', label=metric_type.upper())
+
     plt.xticks(range(1, epoch + 1))
-
     plt.legend()
-
-    plt.savefig(f"{base_path}/bleu.png", bbox_inches='tight', dpi=300)
+    plt.savefig(f"{base_path}/{metric_type}.png", bbox_inches='tight', dpi=300)
 
 
 def save_pred_figure(base_path, sampled_images, sampled_labels, sampled_preds):

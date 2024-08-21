@@ -13,9 +13,9 @@ from tqdm import tqdm
 from utils import (
     set_seed,
     LOGGER,
-    get_bleu_score,
+    get_metrics,
     save_loss_history,
-    save_bleu_history,
+    save_history,
     save_pred_figure,
     save_attention_figure
 )
@@ -288,6 +288,7 @@ class BaseTrainer:
         epoch_loss = 0
         total_size = 0
         epoch_bleu2_score, epoch_bleu4_score = 0, 0
+        epoch_meteor_score = 0
         for i, batch in enumerate(tqdm(self.dataloader['valid'], total=len(self.dataloader['valid']), desc=f"Validation...| Epoch {epoch+1}")):
             model_inputs = {}
             for batch_key in batch.keys():
@@ -309,10 +310,11 @@ class BaseTrainer:
 
                 model_inputs['captions'] = model_inputs['captions'].detach().cpu()
                 logits = torch.argmax(logits.detach().cpu(), dim=-1)
-                bleu2_score = get_bleu_score(model_inputs['captions'], logits, self.tokenizer, 2)
-                bleu4_score = get_bleu_score(model_inputs['captions'], logits, self.tokenizer, 4)
+                bleu2_score, bleu4_score, meteor_score = get_metrics(model_inputs['captions'], logits, self.tokenizer)
+
                 epoch_bleu2_score += bleu2_score
                 epoch_bleu4_score += bleu4_score
+                epoch_meteor_score += meteor_score
 
                 if i % self.config.log_step == 0:
                     LOGGER.info(f"{'Epoch':<25}{str(epoch + 1)}")
@@ -321,6 +323,7 @@ class BaseTrainer:
                     LOGGER.info(f"{'Loss':<25}{str(loss)}")
                     LOGGER.info(f"{'BLEU-(2)':<25}{bleu2_score:.4f}")
                     LOGGER.info(f"{'BLEU-(4)':<25}{bleu4_score:.4f}")
+                    LOGGER.info(f"{'METEOR':<25}{meteor_score:.4f}")
                     self.valid_loss_history.append([step, loss])
 
             epoch_loss += loss * batch_size
@@ -330,6 +333,7 @@ class BaseTrainer:
 
         # bleu score
         self.bleu_score_list.append([epoch_bleu2_score / (i + 1), epoch_bleu4_score / (i + 1)])
+        self.meteor_score_list.apppend(epoch_meteor_score / (i+1))
 
         if self.config.save_strategy == 'epoch' and self.is_rank_zero:
             self.save_checkpoint(epoch_loss, epoch + 1)
@@ -440,6 +444,7 @@ class BaseTrainer:
             'best_val_loss': loss,
             'epoch_or_step': step,
             'bleu_score_list': self.bleu_score_list,
+            'meteor_score_list': self.meteor_score_list,
         }
 
         if self.config.fp16:
@@ -453,7 +458,8 @@ class BaseTrainer:
             save_loss_history(base_path, "Train", self.config.model_type, self.train_loss_history, step)
             save_loss_history(base_path, "Validation", self.config.model_type, self.valid_loss_history, step)
 
-            save_bleu_history(base_path, self.bleu_score_list)
+            save_history(base_path, self.bleu_score_list)
+            save_history(base_path, self.meteor_score_list, 'meteor')
 
         LOGGER.info(f"{'Saved model...'}")
 

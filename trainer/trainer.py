@@ -13,6 +13,7 @@ class Trainer(BaseTrainer):
         super().__init__(config, device)
 
         self.bleu_score_list = []
+        self.meteor_score_list = []
 
         # dataloaders
         normalize = transforms.Normalize(
