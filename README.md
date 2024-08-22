@@ -61,12 +61,28 @@ python main.py --mode test --checkpoint <checkpoint folder>
 
 #### Test samples
 
+**Sample 1.**
+
+<img src="assets/sample_image_1.jpg" width=600px height="500px">
+<img src="assets/sample_attention_1.jpg" width=600px height="500px">
+
+<br>
+
+**Sample 2.**
+
+<img src="assets/sample_image_2.jpg" width=600px height="500px">
+<img src="assets/sample_attention_2.jpg" width=600px height="500px">
 
 ## Results
 
 ### Loss History
 
+<img src="assets/train_loss.png" width=600px height="500px">
 
 ### BLEU Score History
 
+<img src="assets/bleu.png" width=600px height="500px">
 
+### METEOR Score History
+
+<img src="assets/meteor.png" width=600px height="500px">
