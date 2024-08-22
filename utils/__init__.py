@@ -51,22 +51,31 @@ def setup_env():
     os.environ['TORCH_USE_CUDA_DSA'] = '1'
 
 
-def save_loss_history(base_path, phase, model_name, loss_history, step):
+def get_losses(loss_history, step):
     losses = []
     length = len(loss_history)
-    chunk_step = length // step
+    chunk_step = math.ceil(length / step)
     for i in range(0, length, chunk_step):
         cur = [loss for _, loss in loss_history[i: i+chunk_step]]
         losses.append(sum(cur) / len(cur))
+    
+    return losses
 
-    plt.title(f"{phase} Loss History")
+def save_loss_history(base_path, train_loss_history, valid_loss_history, step):
+    train_losses = get_losses(train_loss_history, step)
+    valid_losses = get_losses(valid_loss_history, step)
+
+    plt.figure(figsize=(step/2, 8))
+    plt.title(f"Training Loss History")
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
 
-    plt.plot(range(1, step + 1), losses, marker='o', label=model_name)
+    plt.plot(range(1, step + 1), train_losses, marker='o', label="train")
+    plt.plot(range(1, step + 1), valid_losses, marker='o', label="validation")
+
     plt.xticks(range(1, step + 1))
     plt.legend()
-    plt.savefig(f"{base_path}/{phase}_loss.png", bbox_inches='tight', dpi=300)
+    plt.savefig(f"{base_path}/train_loss.png", bbox_inches='tight', dpi=300)
 
 
 def save_history(base_path, history, metric_type='bleu'):
@@ -74,11 +83,12 @@ def save_history(base_path, history, metric_type='bleu'):
     Args:
         metric_type (str) : metric name
     """
+    epoch = len(history)
     if metric_type == 'bleu':
         bleu2 = [bleu for bleu, _ in history]
         bleu4 = [bleu for _, bleu in history]
-        epoch = len(history)
 
+    plt.figure()
     plt.title(f"{metric_type.upper()} Score History")
     plt.xlabel("Epoch")
     plt.ylabel(metric_type.upper())

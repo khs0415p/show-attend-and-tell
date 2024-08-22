@@ -455,8 +455,7 @@ class BaseTrainer:
             pickle.dump(save_items, f)
 
         if last_save:
-            save_loss_history(base_path, "Train", self.config.model_type, self.train_loss_history, step)
-            save_loss_history(base_path, "Validation", self.config.model_type, self.valid_loss_history, step)
+            save_loss_history(base_path, self.train_loss_history, self.valid_loss_history, step)
 
             save_history(base_path, self.bleu_score_list)
             save_history(base_path, self.meteor_score_list, 'meteor')
