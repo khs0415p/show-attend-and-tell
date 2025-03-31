@@ -42,6 +42,7 @@ class BaseTrainer:
 
         self.start_epoch = 0
         self.epochs = config.epochs
+        self.gradient_accumulation_steps = config.gradient_accumulation_steps
 
         self.train_loss_history = []
         self.valid_loss_history = []
@@ -102,7 +103,7 @@ class BaseTrainer:
             if self.is_rank_zero:
                 LOGGER.info(f"{'Initialize':<25} {self.__class__.__name__}")
                 LOGGER.info(f"{'Batch Size':<25} {str(self.config.batch_size)}")
-                LOGGER.info(f"{'Accumulation Step':<25} {str(self.config.gradient_accumulation_steps)}")
+                LOGGER.info(f"{'Accumulation Step':<25} {str(self.gradient_accumulation_steps)}")
                 LOGGER.info(f"{'Encoder Learning Rate':<25} {str(self.config.encoder_lr)}")
                 LOGGER.info(f"{'Decoder Learning Rate':<25} {str(self.config.decoder_lr)}")
 
@@ -213,6 +214,8 @@ class BaseTrainer:
 
 
     def _backward_step(self, loss):
+        # Loss scaling
+        loss = loss / self.gradient_accumulation_steps
         if self.config.fp16:
             from apex import amp
             with amp.scale_loss(loss, self.encoder_optimizer) as scaled_loss:
@@ -223,7 +226,7 @@ class BaseTrainer:
         else:
             loss.backward()
 
-        if self.n_iter % self.config.gradient_accumulation_steps == 0:
+        if self.n_iter % self.gradient_accumulation_steps == 0:
             if self.config.fp16:
                 clip_grad_norm_(amp.master_params(self.encoder_optimizer), self.config.clip_max_norm)
                 clip_grad_norm_(amp.master_params(self.decoder_optimizer), self.config.clip_max_norm)
